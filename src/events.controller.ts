@@ -8,37 +8,50 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
+import { Event } from './event.entity';
 import { CreateEventDto } from './create-event.dto.';
 import { UpdateEventDto } from './update-event.dto.';
 
-@Controller('events')
+@Controller('/events')
 export class EventsController {
+  private events: Event[] = [];
+
   @Get()
   findAll() {
-    return [
-      { id: 1, name: 'First event' },
-      { id: 2, name: 'First event' },
-    ];
+    return this.events;
   }
 
   @Get(':id')
   findOne(@Param('id') id) {
-    return { id: 1, name: 'First event' };
+    const event = this.events.find((event) => event.id === parseInt(id));
   }
 
   @Post()
   create(@Body() input: CreateEventDto) {
-    return input;
+    const event = {
+      ...input,
+      when: new Date(input.when),
+      id: this.events.length + 1,
+    };
+    this.events.push(event);
+    return event;
   }
 
   @Patch(':id')
   update(@Param('id') id, @Body() input: UpdateEventDto) {
-    return input;
+    const index = this.events.findIndex((event) => event.id === parseInt(id));
+
+    this.events[index] = {
+      ...this.events[index],
+      ...input,
+      when: input.when ? new Date(input.when) : this.events[index].when,
+    };
+    return this.events[index];
   }
 
   @Delete(':id')
   @HttpCode(204)
   remove(@Param('id') id) {
-    // null;
+    this.events = this.events.filter((event) => event.id !== parseInt(id));
   }
 }
