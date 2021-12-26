@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpCode,
   Param,
   Patch,
   Post,
@@ -12,12 +13,15 @@ import {
 export class EventsController {
   @Get()
   findAll() {
-    // null;
+    return [
+      { id: 1, name: 'First event' },
+      { id: 2, name: 'First event' },
+    ];
   }
 
   @Get(':id')
   findOne(@Param('id') id) {
-    return id;
+    return { id: 1, name: 'First event' };
   }
 
   @Post()
@@ -26,11 +30,12 @@ export class EventsController {
   }
 
   @Patch(':id')
-  update(@Param('id') id) {
-    //null;
+  update(@Param('id') id, @Body() input) {
+    return input;
   }
 
   @Delete(':id')
+  @HttpCode(204)
   remove(@Param('id') id) {
     // null;
   }
