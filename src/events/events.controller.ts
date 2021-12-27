@@ -143,6 +143,6 @@ export class EventsController {
       throw new NotFoundException();
     }
 
-    await this.repository.remove(event);
+    await this.eventsService.deleteEvent(id);
   }
 }
