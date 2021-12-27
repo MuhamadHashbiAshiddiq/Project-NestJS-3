@@ -1,6 +1,8 @@
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppIndoService } from './app.indo.service';
 import { AppController } from './app.controller';
+import { AppDummy } from './app.dummy';
 import { AppService } from './app.service';
 import { EventsModule } from './events/events.module';
 
@@ -19,6 +21,16 @@ import { EventsModule } from './events/events.module';
     EventsModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    {
+      provide: AppService,
+      useClass: AppIndoService,
+    },
+    {
+      provide: ' MESSAGE',
+      inject: [AppDummy],
+      useFactory: (app) => `${app.dummy()} Factory!`,
+    },
+  ],
 })
 export class AppModule {}
