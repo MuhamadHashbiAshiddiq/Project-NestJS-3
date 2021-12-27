@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { query } from 'express';
+import { paginate, PaginateOptions } from 'src/pagination/paginator';
 import { Repository } from 'typeorm';
 import { AttendeeAnswerEnum } from './attendee.entity';
 import { Event } from './event.entity';
@@ -53,11 +53,11 @@ export class EventsService {
       );
   }
 
-  public async getEventsWithAttendeeCountFiltered(filter?: ListEvents) {
+  private async getEventsWithAttendeeCountFiltered(filter?: ListEvents) {
     let query = this.getEventsWithAttendeeCountQuery();
 
     if (!filter) {
-      return query.getMany();
+      return query;
     }
 
     if (filter.when) {
@@ -82,8 +82,18 @@ export class EventsService {
           'YEARWEEK(e.when, 1) = YEARWEEK(CURDATE(), 1) + 1',
         );
       }
-      return await query.getMany();
+      return await query;
     }
+  }
+
+  public async getEventsWithAttendeeCountFilteredPaginated(
+    filter: ListEvents,
+    paginateOptions: PaginateOptions,
+  ) {
+    return await paginate(
+      await this.getEventsWithAttendeeCountFiltered(filter),
+      paginateOptions,
+    );
   }
 
   public async getEvent(id: number): Promise<Event | undefined> {
