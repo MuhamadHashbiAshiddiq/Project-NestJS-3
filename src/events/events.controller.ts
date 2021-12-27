@@ -18,7 +18,7 @@ import { Event } from './event.entity';
 import { CreateEventDto } from './create-event.dto.';
 import { UpdateEventDto } from './update-event.dto.';
 import { Attendee } from './attendee.entity';
-import { EventsService } from './evennts.service';
+import { EventsService } from './events.service';
 
 @Controller('/events')
 export class EventsController {
