@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   Param,
+  ParseIntPipe,
   Patch,
   Post,
 } from '@nestjs/common';
@@ -46,7 +47,8 @@ export class EventsController {
   }
 
   @Get(':id')
-  async findOne(@Param('id') id) {
+  async findOne(@Param('id', ParseIntPipe) id: number) {
+    console.log(typeof id);
     return await this.repository.findOne(id);
   }
 
