@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   HttpCode,
   Logger,
@@ -31,13 +32,7 @@ import { AuthGuardJwt } from 'src/auth/auth-guard.jwt';
 export class EventsController {
   private readonly logger = new Logger(EventsController.name);
 
-  constructor(
-    @InjectRepository(Event)
-    private readonly repository: Repository<Event>,
-    @InjectRepository(Attendee)
-    private readonly attendeeRepository: Repository<Attendee>,
-    private readonly eventsService: EventsService,
-  ) {}
+  constructor(private readonly eventsService: EventsService) {}
 
   @Get()
   @UsePipes(new ValidationPipe({ transform: true }))
@@ -76,32 +71,32 @@ export class EventsController {
     });
   }
 
-  @Get('practice2')
-  async practice2() {
-    // return await this.repository.findOne(1, { relations: ['attendees'] });
-    // const event = new Event();
-    // event.id = 1;
-    // const attendee = new Attendee();
-    // attendee.name = 'Jerry The Second';
-    // attendee.event = event;
-    // event.attendees.push(attendee);
-    // event.attendees = [];
-    // await this.attendeeRepository.save(attendee);
-    // await this.repository.save(event);
-    // return event;
-    // return await this.repository
-    //   .createQueryBuilder('e')
-    //   .select(['e.id', 'e.name'])
-    //   .orderBy('e.id', 'DESC')
-    //   .getMany();
+  // @Get('practice2')
+  // async practice2() {
+  // return await this.repository.findOne(1, { relations: ['attendees'] });
+  // const event = new Event();
+  // event.id = 1;
+  // const attendee = new Attendee();
+  // attendee.name = 'Jerry The Second';
+  // attendee.event = event;
+  // event.attendees.push(attendee);
+  // event.attendees = [];
+  // await this.attendeeRepository.save(attendee);
+  // await this.repository.save(event);
+  // return event;
+  // return await this.repository
+  //   .createQueryBuilder('e')
+  //   .select(['e.id', 'e.name'])
+  //   .orderBy('e.id', 'DESC')
+  //   .getMany();
 
-    return await this.repository
-      .createQueryBuilder('e')
-      .select(['e.id', 'e.name'])
-      .orderBy('e.id', 'ASC')
-      .take(3)
-      .getMany();
-  }
+  // return await this.repository
+  //   .createQueryBuilder('e')
+  //   .select(['e.id', 'e.name'])
+  //   .orderBy('e.id', 'ASC')
+  //   .take(3)
+  //   .getMany();
+  // }
 
   @Get(':id')
   async findOne(@Param('id', ParseIntPipe) id: number) {
@@ -122,29 +117,43 @@ export class EventsController {
   }
 
   @Patch(':id')
-  async update(@Param('id') id, @Body() input: UpdateEventDto) {
-    const event = await this.repository.findOne(id);
+  async update(
+    @Param('id') id,
+    @Body() input: UpdateEventDto,
+    @CurrentUser() user: User,
+  ) {
+    const event = await this.eventsService.getEvent(id);
 
     if (!event) {
       throw new NotFoundException();
     }
 
-    return await this.repository.save({
-      ...event,
-      ...input,
-      when: input.when ? new Date(input.when) : event.when,
-    });
+    if (event.organizerId !== user.id) {
+      throw new ForbiddenException(
+        null,
+        `You are not authorized to change this event`,
+      );
+    }
+
+    return await this.eventsService.updateEvent(event, input);
   }
 
   @Delete(':id')
+  @UseGuards(AuthGuardJwt)
   @HttpCode(204)
-  async remove(@Param('id') id) {
-    const event = await this.repository.findOne(id);
+  async remove(@Param('id') id, @CurrentUser() user: User) {
+    await this.eventsService.deleteEvent(id);
+    const event = await this.eventsService.getEvent(id);
 
     if (!event) {
       throw new NotFoundException();
     }
 
-    await this.eventsService.deleteEvent(id);
+    if (event.organizerId !== user.id) {
+      throw new ForbiddenException(
+        null,
+        `You are not authorized to remove this event`,
+      );
+    }
   }
 }
