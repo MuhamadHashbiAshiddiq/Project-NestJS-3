@@ -6,7 +6,7 @@ import { Strategy } from 'passport-local';
 import { User } from './user.entity';
 
 @Injectable()
-export class LocalStrategy extends PassportStrategy(Strategy) {
+export class LocalStrategy extends PassportStrategy(Strategy, 'here') {
   private readonly logger = new Logger(LocalStrategy.name);
 
   constructor(
