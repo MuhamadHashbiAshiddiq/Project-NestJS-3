@@ -8,6 +8,7 @@ export class AppIndoService {
     private readonly message: string,
   ) {}
   getHello(): string {
+    console.log(process.env);
     return 'Helo, Dunia dari ${this.name}, ${this.message}';
   }
 }
