@@ -1,11 +1,36 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AppIndoService } from './app.indo.service';
 import { AppController } from './app.controller';
+import { AppDummy } from './app.dummy';
 import { AppService } from './app.service';
-import { EventsController } from './events.controller';
+import { EventsModule } from './events/events.module';
 
 @Module({
-  imports: [],
-  controllers: [AppController, EventsController],
-  providers: [AppService],
+  imports: [
+    TypeOrmModule.forRoot({
+      type: 'mysql',
+      host: '127.0.0.1',
+      port: 3306,
+      username: 'root',
+      password: 'example',
+      database: 'nest-events',
+      entities: [Event],
+      synchronize: true,
+    }),
+    EventsModule,
+  ],
+  controllers: [AppController],
+  providers: [
+    {
+      provide: AppService,
+      useClass: AppIndoService,
+    },
+    {
+      provide: ' MESSAGE',
+      inject: [AppDummy],
+      useFactory: (app) => `${app.dummy()} Factory!`,
+    },
+  ],
 })
 export class AppModule {}
